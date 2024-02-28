@@ -30,8 +30,15 @@ endDate = endDate.split("/")
 year_end = int(endDate[0])
 month_end = int(endDate[1])
 day_end = int(endDate[2])
+no_of_travellers = int(input("Number of travellers?"))
+no_of_children = int(input("Number of children?"))
+age_of_child = []
+if no_of_children > 0:
+    age_of_child = input("How old are your children?: Format = AGE1/AGE2")
+    age_of_child = age_of_child.split("/")
+    age_of_child = list(map(int, age_of_child))
 
-target_url = ("https://www.expedia.ca/")
+target_url = "https://www.expedia.ca/"
 
 driver = webdriver.Chrome(options=options)
 driver.get(target_url)
@@ -67,7 +74,8 @@ end_date = row_col_date(year_end, month_end, day_end)
 
 def search_for_cities(city_info, driver_use):
     """
-    Uses Selenium WebDriver to enter a city into the Expedia city search
+    Uses Selenium to enter a city into the Expedia city search. Finds the search button for the city search
+    and uses a for loop to enter the name of the city
     :param city_info: A string to enter into the search bar
     :param driver_use: A webdriver
     :return: null
@@ -86,7 +94,8 @@ def search_for_cities(city_info, driver_use):
 
 def select_date(driver_use, start_list, end_list):
     """
-    Uses Selenium WebDriver to enter a check-in date and a check-out date
+    Uses Selenium to enter a check-in date and a check-out date, takes a list of int values to
+    make sure that the proper buttons are selected
     :param driver_use: A webdriver
     :param start_list: A list of ints that represents row, column, and month index
     :param end_list: A list of ints that represents row, column, and month index
@@ -107,10 +116,58 @@ def select_date(driver_use, start_list, end_list):
     apply_date_button.click()
 
 
+def select_travelers(driver_use, travellers, children, child_age_list):
+    """
+    Uses Selenium to enter the amount of travellers looking to check in. For the traveller side of the calculation
+    this uses a for loop to click the plus button in expedia. For the children age side, uses a for loop to put the
+    right Xpath to the child age selectors
+    :param driver_use: Selenium WebDriver
+    :param travellers: an int that represents the amount of travellers
+    :param children: an int that represents the amount of children
+    :param child_age_list: a list of the age of the children
+    :return: null
+    """
+    travel_button = driver_use.find_element(By.XPATH, '//button[@data-stid="open-room-picker"]')
+    travel_button.click()
+    time.sleep(5)
+    add_travel = driver_use.find_element(By.XPATH, '//div/div/button[2]')
+    sub_travel = driver_use.find_element(By.XPATH, '//section/div[1]/div[1]/div/div/button[1]')
+    add_child = driver_use.find_element(By.XPATH, '//section/div[1]/div[2]/div[1]/div/button[2]')
+
+    if travellers == 1:
+        sub_travel.click()
+    elif travellers > 2:
+        for i in range(2, travellers):
+            add_travel.click()
+            time.sleep(1)
+
+    if children > 0:
+        for i in range(0, children):
+            add_child.click()
+            time.sleep(1)
+
+        for j in range(0, len(child_age_list)):
+            child_age_button = driver.find_element(By.XPATH, '//select['
+                                                             '@id="age-traveler_selector_children_age_selector-0'
+                                                             f'-{j}"]')
+            child_age_button.click()
+            time.sleep(2)
+            child_age_selector = driver.find_element(By.XPATH, '//select['
+                                                               '@id="age-traveler_selector_children_age_selector-0'
+                                                               f'-{j}"]/option[{child_age_list[j] + 2}]')
+            child_age_selector.click()
+    time.sleep(2)
+    done_button = driver.find_element(By.XPATH, '//button[@id="traveler_selector_done_button"]')
+    done_button.click()
+
+
 search_for_cities(cityName, driver)
 
 select_date(driver, start_date, end_date)
 
+select_travelers(driver,no_of_travellers,no_of_children,age_of_child)
+
+print(len(age_of_child))
 time.sleep(5)
 
 driver.close()
