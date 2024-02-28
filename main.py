@@ -4,15 +4,20 @@ import time
 
 PATH = 'C:/Program Files (x86)/chromedriver-win64/chromedriver.exe'
 
-target_url = ("https://www.expedia.com/Edmonton-Hotels-Metterra-Hotel-On-Whyte.h996072.Hotel-Information?chkin=2024-03"
-              "-01&chkout=2024-03-03&x_pwa=1&rfrr=HSR&pwa_ts=1709010729882&referrerUrl"
-              "=aHR0cHM6Ly93d3cuZXhwZWRpYS5jb20vSG90ZWwtU2VhcmNo&useRewards=false&rm1=a2&regionId=180002&destination"
-              "=Edmonton+%28and+vicinity%29%2C+Alberta%2C+Canada&destType=MARKET&neighborhoodId=6003832&latLong=53"
-              ".54248%2C-113.49196&trackingData=AAAAAQAAAAEAAAAQFmk_EPxqncveuI5yFLHUNOzrpBKeNV_87SfyqFIN4odMNON9H-h"
-              "-xBpFjDGfBcx5QhX5YNPWcSZvGAQaEYLaOloPGR9q7QBIKwxHbox22EsF4OKXXhih_QgtIBG07gN1kOHb61VyoHFkdgkNUmO2jScMFMwZRwYmv7X4iqihxTo-G6O96hK8M1wgZ7XB05omrVN_MaP4dC15F2jrVwXPiozGy2ahQ_eDPxW0EgwM_jTgCoKaxDOsZU9ZEC_mmcDVCrwvF-MignB41NmYncppXu2l_lGOHGVUVjp3yUVP0U6JpHdZdpwx5dA6BDmFGdqBLECV3ccHAiUBEOkNZSP-o5uXlYsPc78tZGXFcPkNA-ZZbkFCl-oXu-Pduf_s3Hstf8leKbNFlJMwStoBYj4pm6cOOtoSyyT0mkqDYJeAvbJbBuiIy8-CLH5I4naLCZIb_dwKSd6s3OIngu7EwUUgiMwL5svl6OMrLIeYIGZlx47oUf32oXqNJSEcYRn8qTO5V7_gWwxxOEDtWPq2U5wUcXK05LPUi1nBMyhOhpFmVOHmjwiYoB2ZlznGEbekI_IhRoBWP83s1Jr2sG-W6CiuLuW9wfcy9AQ1luYecmMe7B6CilbKoTAQQLrcNX7x0lPwBTAB2K8cYhe5UqiQNs9HcuR8T31HReCnP_OAwNnM4iMbrVRlmb7ipeQq0Z4PGojPr60hS-9AjoMh5-POrXv4F4ELpP9IJtp-C07zikfQR93X3Get90F0NP3Q7ivcnQg8mXQxe4QXAfXxT_aZzWFG3dc9wu4t5anUZzKadf2s9rOy-nkFbRNfWNbpdgULSiPX05zTjK0fUtLlFa_Qg8bJp5ydQy8z3AH8pqu7k8K7w0wY3Iw6yo7pwypEYAWrjJ9a9HITroW3jRiG3Qj2u2lXyiRGtpnNeI7P6nE5t-ymdVaxN7KMsYVAHRcNE0rckFguOhzpfxOuSQ0bc8v7ctXRIOxPyT9YOxcFZTvuWVoPmtEP6z-o77qRbD8SfmuSDH4MqTAyOo2vpdtz6_snAdCSkYYdoroDOuncTUEl6kLonDQyC6jxEY5uMfBxYbnogEnYDpMSnNAGfbP2nCW1fwGm3iqMWHbSmASHm0v0ivYWt2nBwzV9MBYISz1DZ4yRokDEG__c52ZkJlR8VMfinnhnaFRYRO6XyFLJyL5Q2qN1DYFutGwHE2PfQTdP7DFWGRWJFcayaiOT_SZUE6iumvx776BdrH3pEghrL0xjbgLH5yGLVd6x3X4G-wKWkeUlhTCPpckFmc3ryd8zJ3whn52Dqce8tedUqSnZFlvpL2RYqv2PBdbX0byFyUfUh4IFiEQsnSDAz1XKUeFAajluYIpdWCoQHhjs1fa7hDGbSU5i8mRa5rFefhPOvWwGHENcqUlhYIRFSAcv3CFgDMP4dE9Gf0CZWKxxHwpXxW3XqtX6T8wCt_qAP1_ojk63J29iXXCUq_rFXjx2x6vSKweAcw9bN8X8w_8UAAnJgKxWu2Jjt614zEmPneLS5cCtznBH-QdoUtfno73Mtqh0GwJrn3p5i6Lw-1PfcDsKohOoPyqLHKku3vr6nPy0hiFjjfLIxzzJV9QFzMrZL79gxmm-x0QS_UffkNUvKWC6R5a1G4LAZ5CG2JgK2OCn0kKmNR16No-c3uZ84mEj19PHP8Y1Ms3YzmXNOMDpHB9T9DQXZ19j9O7oPQSoHDSndoGopH7MC0CH4IBQXeZvrAyq-5WV1kjB5PrwGatwtHvGWhSW8SJ3l_7E5_Y4xshEuS0nwhTLuDAPWOAlN7olNZi4SVPzKI-7c7mIBUFiJsjGL2PKC_213_FlxX1_tZt2ZJTb4joVYMx1D8lDmPAThaO_x15SSXgoM3NW3_kMZYb29ObeazmLKjLjcjZH6ICRxjorJwLRlX8hAJ_GMMXULx2iAPy4MqMl2uYgNZsWdZgEn6VwaxqhoFIuSdA-7co_EusdxkJaFf16Mqx29iSVRlWm3Lsnlfr295B-Gd67aRK89PRqSxVNBCRoqGks4JmU8QcZIvOTIBaHRCvc-8I6gjTq9TOhYIFQ3A_LGu6_bKCuT5SV3IBGpuOlY4VrCm5pUfP4_vLAzcBiRX7U0hkqRYG3lOlhl9NDhyqoB_z7RiSitYVWp3ksZsKNzm5yAKMEpHNZ15bsaeDJ89MLaD7YVzqa5gVPne3KmXFWczdZ8TBm_DlUr2v5KIk%3D&rank=1&testVersionOverride=Buttercup%2C39483.0.0%2C50206.163597.0%2C50028.0.0%2C50813.0.0%2C49817.165296.0%2C51642.162844.1%2C49460.165713.0%2C51690.163220.0%2C52131.163559.0%2C52527.167088.0%2C52789.167580.0%2C50988.158353.0&slots=&position=1&beaconIssued=&sort=RECOMMENDED&top_dp=188&top_cur=USD&userIntent=&selectedRoomType=213929045&selectedRatePlan=246176315&searchId=3473b6b1-7d05-4221-a618-42ea0da93787")
+options = webdriver.ChromeOptions()
+
+options.add_argument('user-agent=Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) '
+                     'Chrome/87.0.4280.141 Mobile Safari/537.36')
+options.add_argument('accept-encoding=gzip, deflate, br')
+options.add_argument('accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,'
+                     '*/*;q=0.8,application/signed-exchange;v=b3;q=0.7')
+options.add_argument('referer=https://www.expedia.com/')
+options.add_argument('upgrade-insecure-requests=1')
+
+target_url = ("https://www.expedia.ca/")
 
 
-driver = webdriver.Chrome()
+driver = webdriver.Chrome(options=options)
 
 driver.get(target_url)
 
