@@ -1,4 +1,5 @@
 import calendar
+import re
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -12,36 +13,13 @@ PATH = 'C:/Program Files (x86)/chromedriver-win64/chromedriver.exe'
 
 options = webdriver.ChromeOptions()
 
-options.add_argument('Chrome/122.0.4280.141')
+options.add_argument(
+    'user-agent=Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Mobile Safari/537.36')
 options.add_argument('accept-encoding=gzip, deflate, br')
 options.add_argument('accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,'
                      '*/*;q=0.8,application/signed-exchange;v=b3;q=0.7')
 options.add_argument('referer=https://www.expedia.ca/')
 options.add_argument('upgrade-insecure-requests=1')
-
-cityName = input("What city are you staying at?")
-startDate = input("Enter date to check in: Format = YYYY/MM/DD")
-startDate = startDate.split("/")
-year_start = int(startDate[0])
-month_start = int(startDate[1])
-day_start = int(startDate[2])
-endDate = input("Enter date to check out: Format = YYYY/MM/DD")
-endDate = endDate.split("/")
-year_end = int(endDate[0])
-month_end = int(endDate[1])
-day_end = int(endDate[2])
-no_of_travellers = int(input("Number of travellers?"))
-no_of_children = int(input("Number of children?"))
-age_of_child = []
-if no_of_children > 0:
-    age_of_child = input("How old are your children?: Format = AGE1/AGE2")
-    age_of_child = age_of_child.split("/")
-    age_of_child = list(map(int, age_of_child))
-
-target_url = "https://www.expedia.ca/"
-
-driver = webdriver.Chrome(options=options)
-driver.get(target_url)
 
 
 def row_col_date(year, month, day):
@@ -67,11 +45,6 @@ def row_col_date(year, month, day):
     return [month_index, row, col]
 
 
-# These guys are going to be put in the main function
-start_date = row_col_date(year_start, month_start, day_start)
-end_date = row_col_date(year_end, month_end, day_end)
-
-
 def search_for_cities(city_info, driver_use):
     """
     Uses Selenium to enter a city into the Expedia city search. Finds the search button for the city search
@@ -81,14 +54,14 @@ def search_for_cities(city_info, driver_use):
     :return: null
     """
     city_button = driver_use.find_element(By.XPATH, '//button[@data-stid="destination_form_field-dialog-trigger"]')
-    time.sleep(5)
+    time.sleep(2)
     city_button.click()
     city_search = driver_use.find_element(By.XPATH, '//input[@id="destination_form_field"]')
-    time.sleep(5)
+    time.sleep(2)
     city_search.click()
     for i in city_info:
         city_search.send_keys(i)
-        time.sleep(1)
+        time.sleep(0.25)
     city_search.send_keys(Keys.ENTER)
 
 
@@ -103,15 +76,15 @@ def select_date(driver_use, start_list, end_list):
     """
     date_button = driver_use.find_element(By.XPATH, '//button[@data-stid="uitk-date-selector-input1-default"]')
     date_button.click()
-    time.sleep(10)
+    time.sleep(5)
     start_date_button = driver_use.find_element(By.XPATH,
                                                 f'//div[{start_list[0]}]/table/tbody/tr[{start_list[1]}]/td[{start_list[2]}]')
     start_date_button.click()
-    time.sleep(5)
+    time.sleep(2)
     end_date_button = driver_use.find_element(By.XPATH,
                                               f'//div[{end_list[0]}]/table/tbody/tr[{end_list[1]}]/td[{end_list[2]}]')
     end_date_button.click()
-    time.sleep(5)
+    time.sleep(2)
     apply_date_button = driver_use.find_element(By.XPATH, '//button[@data-stid="apply-date-selector"]')
     apply_date_button.click()
 
@@ -128,8 +101,9 @@ def select_travelers(driver_use, travellers, children, child_age_list):
     :return: null
     """
     travel_button = driver_use.find_element(By.XPATH, '//button[@data-stid="open-room-picker"]')
+    time.sleep(2)
     travel_button.click()
-    time.sleep(5)
+    time.sleep(2)
     add_travel = driver_use.find_element(By.XPATH, '//div/div/button[2]')
     sub_travel = driver_use.find_element(By.XPATH, '//section/div[1]/div[1]/div/div/button[1]')
     add_child = driver_use.find_element(By.XPATH, '//section/div[1]/div[2]/div[1]/div/button[2]')
@@ -147,27 +121,141 @@ def select_travelers(driver_use, travellers, children, child_age_list):
             time.sleep(1)
 
         for j in range(0, len(child_age_list)):
-            child_age_button = driver.find_element(By.XPATH, '//select['
-                                                             '@id="age-traveler_selector_children_age_selector-0'
-                                                             f'-{j}"]')
+            child_age_button = driver_use.find_element(By.XPATH, '//select['
+                                                                 '@id="age-traveler_selector_children_age_selector-0'
+                                                                 f'-{j}"]')
+            time.sleep(2)
             child_age_button.click()
             time.sleep(2)
-            child_age_selector = driver.find_element(By.XPATH, '//select['
-                                                               '@id="age-traveler_selector_children_age_selector-0'
-                                                               f'-{j}"]/option[{child_age_list[j] + 2}]')
+            child_age_selector = driver_use.find_element(By.XPATH, '//select['
+                                                                   '@id="age-traveler_selector_children_age_selector-0'
+                                                                   f'-{j}"]/option[{child_age_list[j] + 2}]')
             child_age_selector.click()
     time.sleep(2)
-    done_button = driver.find_element(By.XPATH, '//button[@id="traveler_selector_done_button"]')
+    done_button = driver_use.find_element(By.XPATH, '//button[@id="traveler_selector_done_button"]')
     done_button.click()
 
 
-search_for_cities(cityName, driver)
+def webscrape(option_use):
+    """
+    Navigates to the expedia website and navigates through the selection process using
+    navigating functions in this script. Scrapes the website for hotel name, address, rating
+    price per day, and the final price. Puts these items in a dictionary
+    :param option_use: ChromeOptions to be used by the driver
+    :return: a dictionary consisting of keys and list values
+    """
+    target_url = "https://www.expedia.ca/"
 
-select_date(driver, start_date, end_date)
+    # Ask user for specific data
+    city_name = input("What city are you staying at?")
+    start_date = input("Enter date to check in: Format = YYYY/MM/DD")
+    start_date = start_date.split("/")
+    year_start = int(start_date[0])
+    month_start = int(start_date[1])
+    day_start = int(start_date[2])
+    end_date = input("Enter date to check out: Format = YYYY/MM/DD")
+    end_date = end_date.split("/")
+    year_end = int(end_date[0])
+    month_end = int(end_date[1])
+    day_end = int(end_date[2])
+    no_of_travellers = int(input("Number of travellers?"))
+    no_of_children = int(input("Number of children?"))
+    age_of_child = []
+    if no_of_children > 0:
+        age_of_child = input("How old are your children?: Format = AGE1/AGE2")
+        age_of_child = age_of_child.split("/")
+        age_of_child = list(map(int, age_of_child))
 
-select_travelers(driver,no_of_travellers,no_of_children,age_of_child)
+    hotel_name_list = list()
+    hotel_address_list = list()
+    hotel_price_before = list()
+    hotel_price_after = list()
+    hotel_ratings = list()
+    hotel_dictionary = {}
 
-print(len(age_of_child))
-time.sleep(5)
+    driver = webdriver.Chrome(options=option_use)
+    driver.get(target_url)
+    time.sleep(5)
+    close_button = driver.find_element(By.XPATH, '//body/div[1]/div[1]/div[2]/section/div[2]/button')
+    close_button.click()
 
-driver.close()
+    checkin_date = row_col_date(year_start, month_start, day_start)
+    checkout_date = row_col_date(year_end, month_end, day_end)
+
+    search_for_cities(city_name, driver)
+    select_date(driver, checkin_date, checkout_date)
+    select_travelers(driver, no_of_travellers, no_of_children, age_of_child)
+
+    finish_button = driver.find_element(By.XPATH, '//button[@id="search_button"]')
+    finish_button.click()
+
+    # Human must handle captcha manually
+    # Tells selenium to pause until user finishes captcha
+    input('Press enter after captcha is resolved')
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(10)
+    resp = driver.page_source
+
+    # Scrapes the website when in the proper page
+    soup = BeautifulSoup(resp, 'html.parser')
+    all_hotels = soup.find("div", {"data-stid": "property-listing-results"})
+    hotels = all_hotels.find_all("div", {"class": "uitk-spacing uitk-spacing-margin-blockstart-three"})
+
+    for hotel in hotels:
+        hotel_arr = hotel.find_all("div", {
+            "class": "uitk-layout-flex uitk-layout-flex-block-size-full-size uitk-layout-flex-flex-direction-column "
+                     "uitk-layout-flex-justify-content-space-between"})
+        try:
+            name = hotel_arr[0].find("h3").text
+            hotel_name_list.append(name)
+        except:
+            pass
+
+        try:
+            prices = hotel_arr[0].find("div", {"data-test-id": "price-summary"}).text
+            price_lis = re.sub(r"[^0-9,]", " ", prices)
+            price_lis = " ".join(price_lis.split())
+            price_lis = price_lis.split(" ")
+            price_no_dupl = []
+            [price_no_dupl.append(price) for price in price_lis if price not in price_no_dupl]
+
+            if len(price_no_dupl) == 2:
+                hotel_price_before.append(price_no_dupl[0])
+                hotel_price_after.append(price_no_dupl[1])
+            else:
+                hotel_price_before.append(price_no_dupl[1])
+                hotel_price_after.append(price_no_dupl[2])
+        except:
+            pass
+
+        try:
+            address_list = hotel_arr[0].find_all("div", {
+                "class": "uitk-text uitk-text-spacing-half truncate-lines-2 uitk-type-300 uitk-text-default-theme"})
+            if len(address_list) == 1:
+                hotel_address_list.append(address_list[0].text)
+            else:
+                hotel_address_list.append(address_list[1].text)
+        except:
+            pass
+
+        try:
+            rating = hotel_arr[0].find("span", {"class": "uitk-badge-base-text"}).text
+            hotel_ratings.append(rating)
+        except:
+            pass
+
+    hotel_dictionary["hotel"] = hotel_name_list
+    hotel_dictionary["price_before_taxes"] = hotel_price_before
+    hotel_dictionary["price_after_taxes"] = hotel_price_after
+    hotel_dictionary["address"] = hotel_address_list
+    hotel_dictionary["ratings"] = hotel_ratings
+
+    print("Name: ", hotel_dictionary["hotel"], "\nAddress: ", hotel_dictionary["address"], "\nRating: ",
+          hotel_dictionary["ratings"], "\nPrice per day: ", hotel_dictionary["price_before_taxes"], "\nFinal Price: ",
+          hotel_dictionary["price_after_taxes"])
+
+    driver.close()
+    return hotel_dictionary
+
+
+webscrape(options)
