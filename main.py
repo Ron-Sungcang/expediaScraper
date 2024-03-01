@@ -1,5 +1,6 @@
 import calendar
 import re
+import csv
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -14,7 +15,8 @@ PATH = 'C:/Program Files (x86)/chromedriver-win64/chromedriver.exe'
 options = webdriver.ChromeOptions()
 
 options.add_argument(
-    'user-agent=Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Mobile Safari/537.36')
+    'user-agent=Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 '
+    'Mobile Safari/537.36')
 options.add_argument('accept-encoding=gzip, deflate, br')
 options.add_argument('accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,'
                      '*/*;q=0.8,application/signed-exchange;v=b3;q=0.7')
@@ -171,6 +173,7 @@ def webscrape(option_use):
     hotel_price_before = list()
     hotel_price_after = list()
     hotel_ratings = list()
+    hotel_link = list()
     hotel_dictionary = {}
 
     driver = webdriver.Chrome(options=option_use)
@@ -202,17 +205,17 @@ def webscrape(option_use):
     hotels = all_hotels.find_all("div", {"class": "uitk-spacing uitk-spacing-margin-blockstart-three"})
 
     for hotel in hotels:
-        hotel_arr = hotel.find_all("div", {
+        hotel_arr = hotel.find("div", {
             "class": "uitk-layout-flex uitk-layout-flex-block-size-full-size uitk-layout-flex-flex-direction-column "
                      "uitk-layout-flex-justify-content-space-between"})
         try:
-            name = hotel_arr[0].find("h3").text
+            name = hotel_arr.find("h3").text
             hotel_name_list.append(name)
         except:
             pass
 
         try:
-            prices = hotel_arr[0].find("div", {"data-test-id": "price-summary"}).text
+            prices = hotel_arr.find("div", {"data-test-id": "price-summary"}).text
             price_lis = re.sub(r"[^0-9,]", " ", prices)
             price_lis = " ".join(price_lis.split())
             price_lis = price_lis.split(" ")
@@ -220,16 +223,16 @@ def webscrape(option_use):
             [price_no_dupl.append(price) for price in price_lis if price not in price_no_dupl]
 
             if len(price_no_dupl) == 2:
-                hotel_price_before.append(price_no_dupl[0])
-                hotel_price_after.append(price_no_dupl[1])
+                hotel_price_before.append(int(price_no_dupl[0].replace(',', '')))
+                hotel_price_after.append(int(price_no_dupl[1].replace(',', '')))
             else:
-                hotel_price_before.append(price_no_dupl[1])
-                hotel_price_after.append(price_no_dupl[2])
+                hotel_price_before.append(int(price_no_dupl[1].replace(',', '')))
+                hotel_price_after.append(int(price_no_dupl[2].replace(',', '')))
         except:
             pass
 
         try:
-            address_list = hotel_arr[0].find_all("div", {
+            address_list = hotel_arr.find_all("div", {
                 "class": "uitk-text uitk-text-spacing-half truncate-lines-2 uitk-type-300 uitk-text-default-theme"})
             if len(address_list) == 1:
                 hotel_address_list.append(address_list[0].text)
@@ -239,23 +242,105 @@ def webscrape(option_use):
             pass
 
         try:
-            rating = hotel_arr[0].find("span", {"class": "uitk-badge-base-text"}).text
-            hotel_ratings.append(rating)
+            rating = hotel_arr.find("span", {"class": "uitk-badge-base-text"}).text
+            hotel_ratings.append(float(rating))
         except:
             pass
 
-    hotel_dictionary["hotel"] = hotel_name_list
-    hotel_dictionary["price_before_taxes"] = hotel_price_before
-    hotel_dictionary["price_after_taxes"] = hotel_price_after
-    hotel_dictionary["address"] = hotel_address_list
-    hotel_dictionary["ratings"] = hotel_ratings
+        try:
+            link_find = hotel.find("a", {"data-stid": "open-hotel-information"}).get("href")
+            link = link_find.replace('/', target_url, 1)
+            hotel_link.append(link)
+        except:
+            pass
 
-    print("Name: ", hotel_dictionary["hotel"], "\nAddress: ", hotel_dictionary["address"], "\nRating: ",
-          hotel_dictionary["ratings"], "\nPrice per day: ", hotel_dictionary["price_before_taxes"], "\nFinal Price: ",
-          hotel_dictionary["price_after_taxes"])
+    hotel_dictionary["Hotel Name"] = hotel_name_list
+    hotel_dictionary["Price Per Day"] = hotel_price_before
+    hotel_dictionary["Final Price"] = hotel_price_after
+    hotel_dictionary["Address"] = hotel_address_list
+    hotel_dictionary["Rating"] = hotel_ratings
+    hotel_dictionary["Link"] = hotel_link
 
     driver.close()
     return hotel_dictionary
 
 
-webscrape(options)
+def output_to_csv(dictionary, sort):
+    """
+    Sorts a dictionary depending on user preference then outputs a csv file
+    :param dictionary: dictionary to be sorted and used to write csvfile
+    :param sort: user's sorting preference
+    :return: null
+    """
+    # Sort using what the user wanted
+    match sort:
+        case "lowestperday":
+            dictionary["Hotel Name"] = [x for _, x in sorted(zip(dictionary["Price Per Day"], dictionary["Hotel Name"]))]
+            dictionary["Final Price"] = [x for _, x in sorted(zip(dictionary["Price Per Day"], dictionary["Final Price"]))]
+            dictionary["Address"] = [x for _, x in sorted(zip(dictionary["Price Per Day"], dictionary["Address"]))]
+            dictionary["Rating"] = [x for _, x in sorted(zip(dictionary["Price Per Day"], dictionary["Rating"]))]
+            dictionary["Link"] = [x for _, x in sorted(zip(dictionary["Price Per Day"], dictionary["Link"]))]
+            dictionary["Price Per Day"] = sorted(dictionary["Price Per Day"])
+        case "lowestfinal":
+            dictionary["Hotel Name"] = [x for _, x in sorted(zip(dictionary["Final Price"], dictionary["Hotel Name"]))]
+            dictionary["Price Per Day"] = [x for _, x in sorted(zip(dictionary["Final Price"], dictionary["Price Per "
+                                                                                                          "Day"]))]
+            dictionary["Address"] = [x for _, x in sorted(zip(dictionary["Final Price"], dictionary["Address"]))]
+            dictionary["Rating"] = [x for _, x in sorted(zip(dictionary["Final Price"], dictionary["Rating"]))]
+            dictionary["Link"] = [x for _, x in sorted(zip(dictionary["Final Price"], dictionary["Link"]))]
+            dictionary["Final Price"] = sorted(dictionary["Final Price"])
+        case "lowestrating":
+            dictionary["Hotel Name"] = [x for _, x in sorted(zip(dictionary["Rating"], dictionary["Hotel Name"]))]
+            dictionary["Price Per Day"] = [x for _, x in sorted(zip(dictionary["Rating"], dictionary["Price Per Day"]))]
+            dictionary["Address"] = [x for _, x in sorted(zip(dictionary["Rating"], dictionary["Address"]))]
+            dictionary["Final Price"] = [x for _, x in sorted(zip(dictionary["Rating"], dictionary["Final Price"]))]
+            dictionary["Link"] = [x for _, x in sorted(zip(dictionary["Rating"], dictionary["Link"]))]
+            dictionary["Rating"] = sorted(dictionary["Rating"])
+        case "highestperday":
+            dictionary["Hotel Name"] = [x for _, x in
+                                   sorted(zip(dictionary["Price Per Day"], dictionary["Hotel Name"]), reverse=True)]
+            dictionary["Final Price"] = [x for _, x in
+                                         sorted(zip(dictionary["Price Per Day"], dictionary["Final Price"]), reverse=True)]
+            dictionary["Address"] = [x for _, x in
+                                     sorted(zip(dictionary["Price Per Day"], dictionary["Address"]), reverse=True)]
+            dictionary["Rating"] = [x for _, x in
+                                     sorted(zip(dictionary["Price Per Day"], dictionary["Rating"]), reverse=True)]
+            dictionary["Link"] = [x for _, x in
+                                  sorted(zip(dictionary["Price Per Day"], dictionary["Link"]), reverse=True)]
+            dictionary["Price Per Day"] = sorted(dictionary["Price Per Day"], reverse=True)
+        case "highestfinal":
+            dictionary["Hotel Name"] = [x for _, x in
+                                   sorted(zip(dictionary["Final Price"], dictionary["Hotel Name"]), reverse=True)]
+            dictionary["Price Per Day"] = [x for _, x in
+                                       sorted(zip(dictionary["Final Price"], dictionary["Price Per Day"]), reverse=True)]
+            dictionary["Address"] = [x for _, x in
+                                     sorted(zip(dictionary["Final Price"], dictionary["Address"]), reverse=True)]
+            dictionary["Rating"] = [x for _, x in
+                                     sorted(zip(dictionary["Final Price"], dictionary["Rating"]), reverse=True)]
+            dictionary["Link"] = [x for _, x in
+                                  sorted(zip(dictionary["Final Price"], dictionary["Link"]), reverse=True)]
+            dictionary["Final Price"] = sorted(dictionary["Final Price"], reverse=True)
+        case "highestrating":
+            dictionary["Hotel Name"] = [x for _, x in
+                                   sorted(zip(dictionary["Rating"], dictionary["Hotel Name"]), reverse=True)]
+            dictionary["Price Per Day"] = [x for _, x in
+                                       sorted(zip(dictionary["Rating"], dictionary["Price Per Day"]), reverse=True)]
+            dictionary["Address"] = [x for _, x in
+                                     sorted(zip(dictionary["Rating"], dictionary["Address"]), reverse=True)]
+            dictionary["Final Price"] = [x for _, x in
+                                         sorted(zip(dictionary["Rating"], dictionary["Final Price"]), reverse=True)]
+            dictionary["Link"] = [x for _, x in
+                                  sorted(zip(dictionary["Rating"], dictionary["Link"]), reverse=True)]
+            dictionary["Rating"] = sorted(dictionary["Rating"], reverse=True)
+    # Actually writing the csv file
+    with open("hotels.csv", "w") as outfile:
+        writer = csv.writer(outfile, delimiter=",")
+
+        writer.writerow(dictionary.keys())
+        writer.writerows(zip(*[dictionary[key] for key in dictionary.keys()]))
+
+
+sort_func = input("How would you like to sort the information?\n (lowestperday, highestperday, lowestfinal, "
+                  "highestfinal, lowestrating, highestrating)")
+diction = webscrape(options)
+output_to_csv(diction, sort_func)
