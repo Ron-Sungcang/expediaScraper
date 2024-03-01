@@ -12,17 +12,6 @@ from datetime import datetime
 
 PATH = 'C:/Program Files (x86)/chromedriver-win64/chromedriver.exe'
 
-options = webdriver.ChromeOptions()
-
-options.add_argument(
-    'user-agent=Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 '
-    'Mobile Safari/537.36')
-options.add_argument('accept-encoding=gzip, deflate, br')
-options.add_argument('accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,'
-                     '*/*;q=0.8,application/signed-exchange;v=b3;q=0.7')
-options.add_argument('referer=https://www.expedia.ca/')
-options.add_argument('upgrade-insecure-requests=1')
-
 
 def row_col_date(year, month, day):
     """
@@ -106,9 +95,12 @@ def select_travelers(driver_use, travellers, children, child_age_list):
     time.sleep(2)
     travel_button.click()
     time.sleep(2)
-    add_travel = driver_use.find_element(By.XPATH, '//div/div/button[2]')
-    sub_travel = driver_use.find_element(By.XPATH, '//section/div[1]/div[1]/div/div/button[1]')
-    add_child = driver_use.find_element(By.XPATH, '//section/div[1]/div[2]/div[1]/div/button[2]')
+    add_travel = driver_use.find_element(By.XPATH, '//*[@id="lodging_search_form"]/div/div/div[3]/div/div['
+                                                   '2]/div/div/section/div[1]/div[1]/div/div/button[2]')
+    sub_travel = driver_use.find_element(By.XPATH, '//*[@id="lodging_search_form"]/div/div/div[3]/div/div['
+                                                   '2]/div/div/section/div[1]/div[1]/div/div/button[1]')
+    add_child = driver_use.find_element(By.XPATH, '//*[@id="lodging_search_form"]/div/div/div[3]/div/div['
+                                                  '2]/div/div/section/div[1]/div[2]/div[1]/div/button[2]')
 
     if travellers == 1:
         sub_travel.click()
@@ -138,36 +130,26 @@ def select_travelers(driver_use, travellers, children, child_age_list):
     done_button.click()
 
 
-def webscrape(option_use):
+def webscrape(option_use, target_url, year_start, month_start, day_start, year_end, month_end, day_end, city_name,
+              no_of_travellers, no_of_children, age_of_child):
     """
     Navigates to the expedia website and navigates through the selection process using
     navigating functions in this script. Scrapes the website for hotel name, address, rating
     price per day, and the final price. Puts these items in a dictionary
+    :param age_of_child:
+    :param no_of_children:
+    :param no_of_travellers:
+    :param city_name:
+    :param day_end:
+    :param month_end:
+    :param year_end:
+    :param day_start:
+    :param month_start:
+    :param year_start:
+    :param target_url:
     :param option_use: ChromeOptions to be used by the driver
     :return: a dictionary consisting of keys and list values
     """
-    target_url = "https://www.expedia.ca/"
-
-    # Ask user for specific data
-    city_name = input("What city are you staying at?")
-    start_date = input("Enter date to check in: Format = YYYY/MM/DD")
-    start_date = start_date.split("/")
-    year_start = int(start_date[0])
-    month_start = int(start_date[1])
-    day_start = int(start_date[2])
-    end_date = input("Enter date to check out: Format = YYYY/MM/DD")
-    end_date = end_date.split("/")
-    year_end = int(end_date[0])
-    month_end = int(end_date[1])
-    day_end = int(end_date[2])
-    no_of_travellers = int(input("Number of travellers?"))
-    no_of_children = int(input("Number of children?"))
-    age_of_child = []
-    if no_of_children > 0:
-        age_of_child = input("How old are your children?: Format = AGE1/AGE2")
-        age_of_child = age_of_child.split("/")
-        age_of_child = list(map(int, age_of_child))
-
     hotel_name_list = list()
     hotel_address_list = list()
     hotel_price_before = list()
@@ -255,9 +237,9 @@ def webscrape(option_use):
             pass
 
     hotel_dictionary["Hotel Name"] = hotel_name_list
+    hotel_dictionary["Address"] = hotel_address_list
     hotel_dictionary["Price Per Day"] = hotel_price_before
     hotel_dictionary["Final Price"] = hotel_price_after
-    hotel_dictionary["Address"] = hotel_address_list
     hotel_dictionary["Rating"] = hotel_ratings
     hotel_dictionary["Link"] = hotel_link
 
@@ -275,8 +257,10 @@ def output_to_csv(dictionary, sort):
     # Sort using what the user wanted
     match sort:
         case "lowestperday":
-            dictionary["Hotel Name"] = [x for _, x in sorted(zip(dictionary["Price Per Day"], dictionary["Hotel Name"]))]
-            dictionary["Final Price"] = [x for _, x in sorted(zip(dictionary["Price Per Day"], dictionary["Final Price"]))]
+            dictionary["Hotel Name"] = [x for _, x in
+                                        sorted(zip(dictionary["Price Per Day"], dictionary["Hotel Name"]))]
+            dictionary["Final Price"] = [x for _, x in
+                                         sorted(zip(dictionary["Price Per Day"], dictionary["Final Price"]))]
             dictionary["Address"] = [x for _, x in sorted(zip(dictionary["Price Per Day"], dictionary["Address"]))]
             dictionary["Rating"] = [x for _, x in sorted(zip(dictionary["Price Per Day"], dictionary["Rating"]))]
             dictionary["Link"] = [x for _, x in sorted(zip(dictionary["Price Per Day"], dictionary["Link"]))]
@@ -298,33 +282,36 @@ def output_to_csv(dictionary, sort):
             dictionary["Rating"] = sorted(dictionary["Rating"])
         case "highestperday":
             dictionary["Hotel Name"] = [x for _, x in
-                                   sorted(zip(dictionary["Price Per Day"], dictionary["Hotel Name"]), reverse=True)]
+                                        sorted(zip(dictionary["Price Per Day"], dictionary["Hotel Name"]),
+                                               reverse=True)]
             dictionary["Final Price"] = [x for _, x in
-                                         sorted(zip(dictionary["Price Per Day"], dictionary["Final Price"]), reverse=True)]
+                                         sorted(zip(dictionary["Price Per Day"], dictionary["Final Price"]),
+                                                reverse=True)]
             dictionary["Address"] = [x for _, x in
                                      sorted(zip(dictionary["Price Per Day"], dictionary["Address"]), reverse=True)]
             dictionary["Rating"] = [x for _, x in
-                                     sorted(zip(dictionary["Price Per Day"], dictionary["Rating"]), reverse=True)]
+                                    sorted(zip(dictionary["Price Per Day"], dictionary["Rating"]), reverse=True)]
             dictionary["Link"] = [x for _, x in
                                   sorted(zip(dictionary["Price Per Day"], dictionary["Link"]), reverse=True)]
             dictionary["Price Per Day"] = sorted(dictionary["Price Per Day"], reverse=True)
         case "highestfinal":
             dictionary["Hotel Name"] = [x for _, x in
-                                   sorted(zip(dictionary["Final Price"], dictionary["Hotel Name"]), reverse=True)]
+                                        sorted(zip(dictionary["Final Price"], dictionary["Hotel Name"]), reverse=True)]
             dictionary["Price Per Day"] = [x for _, x in
-                                       sorted(zip(dictionary["Final Price"], dictionary["Price Per Day"]), reverse=True)]
+                                           sorted(zip(dictionary["Final Price"], dictionary["Price Per Day"]),
+                                                  reverse=True)]
             dictionary["Address"] = [x for _, x in
                                      sorted(zip(dictionary["Final Price"], dictionary["Address"]), reverse=True)]
             dictionary["Rating"] = [x for _, x in
-                                     sorted(zip(dictionary["Final Price"], dictionary["Rating"]), reverse=True)]
+                                    sorted(zip(dictionary["Final Price"], dictionary["Rating"]), reverse=True)]
             dictionary["Link"] = [x for _, x in
                                   sorted(zip(dictionary["Final Price"], dictionary["Link"]), reverse=True)]
             dictionary["Final Price"] = sorted(dictionary["Final Price"], reverse=True)
         case "highestrating":
             dictionary["Hotel Name"] = [x for _, x in
-                                   sorted(zip(dictionary["Rating"], dictionary["Hotel Name"]), reverse=True)]
+                                        sorted(zip(dictionary["Rating"], dictionary["Hotel Name"]), reverse=True)]
             dictionary["Price Per Day"] = [x for _, x in
-                                       sorted(zip(dictionary["Rating"], dictionary["Price Per Day"]), reverse=True)]
+                                           sorted(zip(dictionary["Rating"], dictionary["Price Per Day"]), reverse=True)]
             dictionary["Address"] = [x for _, x in
                                      sorted(zip(dictionary["Rating"], dictionary["Address"]), reverse=True)]
             dictionary["Final Price"] = [x for _, x in
@@ -340,7 +327,177 @@ def output_to_csv(dictionary, sort):
         writer.writerows(zip(*[dictionary[key] for key in dictionary.keys()]))
 
 
-sort_func = input("How would you like to sort the information?\n (lowestperday, highestperday, lowestfinal, "
-                  "highestfinal, lowestrating, highestrating)")
-diction = webscrape(options)
-output_to_csv(diction, sort_func)
+def get_city_name():
+    """
+    An error handler/getter to get city name from user input
+    :return: a string of city input
+    """
+    while True:
+        city_input = input("What city are you staying at?")
+
+        if not city_input:
+            print("You did not enter a city please enter a city")
+        else:
+            return city_input
+
+
+def get_check_in_date():
+    """
+    Checks if the user input matches the YYYY/MM/DD format. Then checks if the date is earlier than current date.
+    :return:  The string of user inputted check-in date
+    """
+    while True:
+        check_in_input = input("Enter date to check in: Format = YYYY/MM/DD")
+
+        # This checks if user input is actually the right format
+        pattern_checker = re.compile(r'^\d{4}/\d{2}/\d{2}$')
+
+        if pattern_checker.match(check_in_input):
+            # This checks if this is actually a valid date
+            date_inputted = datetime.strptime(check_in_input, "%Y/%m/%d").date()
+            current_date = datetime.now().date()
+
+            if date_inputted >= current_date:
+                return check_in_input
+            else:
+                print("Please enter a valid check-in date.")
+        else:
+            print("Please enter a valid check-in date.")
+
+
+def get_checkout_date(check_in_date):
+    """
+    Checks if the user input matches the YYYY/MM/DD format. Then checks if the date is earlier than check-in date.
+    :param check_in_date: a YYYY/MM/DD string that represents check in date
+    :return: a string in the right format for the checkout date
+    """
+    while True:
+        check_out_input = input("Enter date to check out: Format = YYYY/MM/DD")
+
+        # This checks if user input is actually the right format
+        pattern_checker = re.compile(r'^\d{4}/\d{2}/\d{2}$')
+
+        if pattern_checker.match(check_out_input):
+            date_inputted = datetime.strptime(check_out_input, "%Y/%m/%d").date()
+            date_to_compare = datetime.strptime(check_in_date, "%Y/%m/%d").date()
+
+            if date_inputted > date_to_compare:
+                return check_out_input
+            else:
+                print("Please enter a valid check-out date.")
+        else:
+            print("Please enter a valid check-out date.")
+
+
+def get_travellers():
+    """
+    Asks the user for input for the amount of travellers, asks again if invalid
+    :return: an int for number if travellers
+    """
+    while True:
+        int_input = input("Number of travellers?")
+
+        if not int_input:
+            print("Please enter a number.")
+        else:
+            int_input = int(int_input)
+            if int_input <= 0:
+                print("Invalid number of travellers.")
+            else:
+                return int_input
+
+
+def get_children():
+    """
+    Checks if the user actually typed something, asks again if they did not
+    :return: int representing number of children
+    """
+    while True:
+        int_input = input("Number of children?")
+
+        if not int_input:
+            print("Please enter a number.")
+        else:
+            int_input = int(int_input)
+            return int_input
+
+
+def get_children_age(no_of_children):
+    """
+    Asks the user for their children's age in AGE1/AGE2 format. Checks if it's in that format then checks if the number of ages
+    inputted matches the number of children
+    :param no_of_children: an int that represents the number of children
+    :return: a string in AGE1/AGE2 format
+    """
+    while True:
+        age_input = input("How old are your children?: Format = AGE1/AGE2")
+
+        pattern_checker = re.compile(r'^\d{2}(/\d{2})*$')
+
+        if pattern_checker.match(age_input):
+            age_check = age_input.split("/")
+
+            if no_of_children == len(age_check):
+                return age_input
+            else:
+                print("Ages did not match number of children")
+        else:
+            print("Please enter in valid format")
+
+
+def get_sort(choices):
+    """
+    Asks the user to input a str ing from (lowestperday, highestperday, lowestfinal, highestfinal, lowestrating, highestrating)
+    checks if the input matches one of them
+    :param choices: a list of string consisting of  (lowestperday, highestperday, lowestfinal, highestfinal, lowestrating, highestrating)
+    :return: a string
+    """
+    sort_choice = ""
+    while sort_choice not in choices:
+        sort_choice = input("How would you like to sort the information?\n (lowestperday, highestperday, lowestfinal, "
+                      "highestfinal, lowestrating, highestrating)")
+    return sort_choice
+
+
+def main():
+    options = webdriver.ChromeOptions()
+
+    options.add_argument(
+        'user-agent=Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) '
+        'Chrome/87.0.4280.141'
+        'Mobile Safari/537.36')
+    options.add_argument('accept-encoding=gzip, deflate, br')
+    options.add_argument(
+        'accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,'
+        '*/*;q=0.8,application/signed-exchange;v=b3;q=0.7')
+    options.add_argument('referer=https://www.expedia.ca/')
+    options.add_argument('upgrade-insecure-requests=1')
+
+    url = "https://www.expedia.ca/"
+    # Ask user for specific data
+    city_name = get_city_name()
+    start_date = get_check_in_date()
+    end_date = get_checkout_date(start_date)
+    start_date = start_date.split("/")
+    year_start = int(start_date[0])
+    month_start = int(start_date[1])
+    day_start = int(start_date[2])
+    end_date = end_date.split("/")
+    year_end = int(end_date[0])
+    month_end = int(end_date[1])
+    day_end = int(end_date[2])
+    no_of_travellers = get_travellers()
+    no_of_children = get_children()
+    age_of_child = []
+    if no_of_children > 0:
+        age_of_child = get_children_age(no_of_children)
+        age_of_child = age_of_child.split("/")
+        age_of_child = list(map(int, age_of_child))
+    sort_func = get_sort(["lowestperday", "highestperday", "lowestfinal","highestfinal", "lowestrating", "highestrating"])
+    hotel_dict = webscrape(options, url, year_start, month_start, day_start, year_end, month_end, day_end, city_name,
+                           no_of_travellers, no_of_children, age_of_child)
+    output_to_csv(hotel_dict, sort_func)
+
+
+if __name__ == '__main__':
+    main()
